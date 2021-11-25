@@ -47,6 +47,14 @@ contract("NollaCoin", (accounts) => {
         );
       }
 
+      it("should add user to barkers list after barking", async () => {
+        await bark(instance, accounts[0], accounts[1], 1);
+
+        const barkersList = await instance.barkersList();
+
+        assert.ok(barkersList[accounts[0]]);
+      });
+
       try {
         const barksCost = await instance.barksCost();
         let balance = await getBalance(instance, accounts[0]);
@@ -84,6 +92,36 @@ contract("NollaCoin", (accounts) => {
 
       barksOn1By0 = await bark(instance, accounts[0], accounts[1], 3);
       assert.equal(barksOn1By0, 5, "Final barks amount is not 2 + 3 = 5");
+    });
+
+    it("should keep correct track of barks account[1] accumulated after being barked at by several users", async () => {
+      // Give other accounts enough NC wei to bark
+      await instance.transfer(accounts[2], 5000, {from: accounts[0]});
+      await instance.transfer(accounts[3], 5000, {from: accounts[0]});
+
+      await bark(instance, accounts[0], accounts[1], 2);
+      let barksCount = await instance.userBarks(accounts[1]);
+      assert.equal(
+        barksCount,
+        2,
+        "After being barked at twice, user should have 2 barks accumulated"
+      );
+
+      await bark(instance, accounts[2], accounts[1], 3);
+      barksCount = await instance.userBarks(accounts[1]);
+      assert.equal(
+        barksCount,
+        5,
+        "After being barked at an additional 3 times, user should have 5 barks accumulated"
+      );
+
+      await bark(instance, accounts[3], accounts[1], 4);
+      barksCount = await instance.userBarks(accounts[1]);
+      assert.equal(
+        barksCount,
+        9,
+        "After being barked at an additional 4 times, user should have 9 barks accumulated"
+      );
     });
   });
 });

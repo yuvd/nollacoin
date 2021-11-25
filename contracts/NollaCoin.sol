@@ -4,6 +4,7 @@ pragma solidity >0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract NollaCoin is ERC20 {
+  mapping(address => uint256) public userBarks; // List of users who have been barked upon, and how many barks they've accumulated
   mapping(address => mapping(address => uint256)) public barksLedger; // Key is user who has been barked upon. Value is a mapping of users who barked on the user, and how many times each user barked on them.
   uint256 public barksCost = 1000;
 
@@ -20,5 +21,10 @@ contract NollaCoin is ERC20 {
 
     mapping(address => uint256) storage barkersOnUserList = barksLedger[barkee]; // Get full list of users who barked on the barkee
     barkersOnUserList[msg.sender] = barkersOnUserList[msg.sender] + barksAmount; // Go the "row" where the amount of times the barker barked upon the barkee is, and increment it by 1
+
+    userBarks[barkee] = userBarks[barkee] + barksAmount; // Add to user's barks count
+    _burn(msg.sender, barksCost * barksAmount); // Burn the barking fee from the barker's account
   }
+
+  //   function cashBarksIn() {}
 }
