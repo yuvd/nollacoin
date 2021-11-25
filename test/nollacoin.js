@@ -23,13 +23,11 @@ contract("NollaCoin", (accounts) => {
     });
 
     it("should transfer 1000 NollaCoin wei from account 0 to account 1", async () => {
-      let balance = await instance.balanceOf.call(accounts[1]);
-      balance = balance.valueOf().toString();
+      let balance = await getBalance(instance, accounts[1]);
       assert.equal(balance, 0, "Starting balance is not 0");
 
       await instance.transfer(accounts[1], 1000, {from: accounts[0]});
-      balance = await instance.balanceOf.call(accounts[1]);
-      balance = balance.valueOf().toString();
+      balance = await getBalance(instance, accounts[1]);
 
       assert.equal(balance, 1000, "Final balance is not 1000");
     });
@@ -38,8 +36,7 @@ contract("NollaCoin", (accounts) => {
   describe("bark tests", () => {
     it("should fail if barker doesn't have enough wei to bark", async () => {
       try {
-        let balance = await instance.balanceOf.call(accounts[1]);
-        balance = balance.valueOf().toString();
+        let balance = await getBalance(instance, accounts[1]);
         assert.equal(balance, 0, "Starting balance is not 0");
 
         await bark(instance, accounts[1], accounts[0], 1);
@@ -52,8 +49,7 @@ contract("NollaCoin", (accounts) => {
 
       try {
         const barksCost = await instance.barksCost();
-        let balance = await instance.balanceOf.call(accounts[0]);
-        balance = balance.valueOf().toString();
+        let balance = await getBalance(instance, accounts[0]);
 
         assert.isBelow(
           balance,
@@ -93,7 +89,7 @@ contract("NollaCoin", (accounts) => {
 });
 
 async function getBalance(instance, account) {
-  let balance = await instance.balanceOf.call(account);
+  let balance = await instance.balanceOf(account);
   balance = balance.valueOf().toString();
 
   return balance;
