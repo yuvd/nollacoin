@@ -16,7 +16,7 @@ contract NollaCoin is ERC20 {
     return 20;
   }
 
-  function bark(address barkee, uint8 barksAmount) external {
+  function bark(address barkee, uint8 barksAmount) external payable {
     require(balanceOf(msg.sender) > (barksCost * barksAmount)); // Barker must have 1000 NollaCoin wei per bark to bark at other users
 
     mapping(address => uint256) storage barkersOnUserList = barksLedger[barkee]; // Get full list of users who barked on the barkee
@@ -26,5 +26,17 @@ contract NollaCoin is ERC20 {
     _burn(msg.sender, barksCost * barksAmount); // Burn the barking fee from the barker's account
   }
 
-  //   function cashBarksIn() {}
+  function cashBarksIn(uint256 amountToCashIn, address barker) external {
+    uint256 barksBalance = userBarks[msg.sender];
+
+    require(barksBalance > 0);
+
+    _mint(msg.sender, amountToCashIn * (barksCost / 10));
+
+    userBarks[msg.sender] = userBarks[msg.sender] - amountToCashIn; // Remove amount cashed in from user's barks balance
+
+    mapping(address => uint256) storage barkersOnUserList = barksLedger[msg
+      .sender]; // Get full list of users who barked on the barkee
+    barkersOnUserList[barker] = barkersOnUserList[barker] - amountToCashIn; // Go the "row" where the amount of times the barker barked upon the barkee is, and remove amount cashed in from it
+  }
 }
