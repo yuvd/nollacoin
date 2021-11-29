@@ -3,7 +3,7 @@ const NollaCoin = artifacts.require("NollaCoin");
 let instance;
 
 beforeEach(async function () {
-  instance = await NollaCoin.new(1000);
+  instance = await NollaCoin.new(1000, 1000);
 });
 
 contract("NollaCoin", (accounts) => {
@@ -30,6 +30,37 @@ contract("NollaCoin", (accounts) => {
       balance = await getBalance(instance, accounts[1]);
 
       assert.equal(balance, 1000, "Final balance is not 1000");
+    });
+  });
+
+  describe("admin tests", () => {
+    it("should only allow admin to run admin functions", async () => {
+      await instance.setBarksCost("2000", {from: accounts[0]});
+      await instance.transferAdmin(accounts[1], {from: accounts[0]});
+    });
+
+    it("should allow admin to transfer adminship", async () => {
+      let currentAdmin = await instance.admin();
+      assert.equal(
+        currentAdmin,
+        accounts[0],
+        "Initial admin is not accounts[0]"
+      );
+
+      await instance.transferAdmin(accounts[1], {from: accounts[0]});
+      currentAdmin = await instance.admin();
+
+      assert.equal(currentAdmin, accounts[1]);
+    });
+
+    it("should allow admin to change barksCost from 1000 wei to 2000 wei", async () => {
+      let barksCost = (await instance.barksCost()).valueOf().toString();
+      assert.equal(barksCost, 1000, "Initial barksCost is not 1000");
+
+      await instance.setBarksCost("2000", {from: accounts[0]});
+      barksCost = (await instance.barksCost()).valueOf().toString();
+
+      assert.equal(barksCost, "2000");
     });
   });
 
