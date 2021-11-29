@@ -4,12 +4,25 @@ pragma solidity >0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract NollaCoin is ERC20 {
+  address public admin;
+  uint256 public barksCost;
   mapping(address => uint256) public userBarks; // List of users who have been barked upon, and how many barks they've accumulated
   mapping(address => mapping(address => uint256)) public barksLedger; // Key is user who has been barked upon. Value is a mapping of users who barked on the user, and how many times each user barked on them.
-  uint256 public barksCost = 1000;
 
-  constructor(uint256 initialSupply) ERC20("NollaCoin", "NOL") {
+  constructor(uint256 initialSupply, uint256 _barksCost)
+    ERC20("NollaCoin", "NOL")
+  {
+    admin = msg.sender;
+    barksCost = _barksCost;
     _mint(msg.sender, initialSupply * 10**decimals());
+  }
+
+  function setBarksCost(uint256 _barksCost) external restricted {
+    barksCost = _barksCost;
+  }
+
+  function transferAdmin(address newAdmin) external restricted {
+    admin = newAdmin;
   }
 
   function decimals() public pure override returns (uint8) {
@@ -38,5 +51,10 @@ contract NollaCoin is ERC20 {
     mapping(address => uint256) storage barkersOnUserList = barksLedger[msg
       .sender]; // Get full list of users who barked on the barkee
     barkersOnUserList[barker] = barkersOnUserList[barker] - amountToCashIn; // Go the "row" where the amount of times the barker barked upon the barkee is, and remove amount cashed in from it
+  }
+
+  modifier restricted() {
+    require(msg.sender == admin);
+    _;
   }
 }
